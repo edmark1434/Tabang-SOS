@@ -25,11 +25,12 @@ import {
     Flag,
     ArrowUpDown
 } from 'lucide-react';
-
+import { addNeedHelp } from '../services/needHelp.js';
 import PinSourcePanel from './modals/PinSourcePanel.jsx';
 import AskHelpPanel from './modals/AskHelpPanel.jsx';
-import { initialPosts, categories, cities } from '../data/dataset.js';
-
+import { categories, cities } from '../data/dataset.js';
+import { liveHelp } from '../services/needHelp.js';
+import { addSource, liveSource } from '../services/source.js';
 const Home = () => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
@@ -45,14 +46,15 @@ const Home = () => {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
-    const [posts, setPosts] = useState(initialPosts);
+    const [posts, setPosts] = useState([]);
     const [sortOrder, setSortOrder] = useState('latest'); // 'latest' or 'oldest'
 
     // Add these new state variables
     const [showReportModal, setShowReportModal] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
     const [reportReason, setReportReason] = useState('');
-
+    const [sourcePost,setSourcePost] = useState([]);
+    const [helpPost,setHelpPost] = useState([]);
     const [activeEmergencyCases, setActiveEmergencyCases] = useState(
         posts.filter(p => p.type === 'help' && p.urgent).length
     );
@@ -65,6 +67,25 @@ const Home = () => {
         type: ''
     });
 
+    useEffect(() => {
+    // Start listening for live updates
+    const unsubscribe = liveHelp((listHelps) => {
+        setHelpPost(listHelps);
+    });
+    // Cleanup on unmount
+    return () => unsubscribe();
+  }, []);
+  useEffect(() => {
+    // Start listening for live updates
+    const unsubscribe = liveSource((listSource) => {
+        setSourcePost(listSource);
+    });
+    // Cleanup on unmount
+    return () => unsubscribe();
+  }, []);
+  useEffect(()=>{
+    setPosts([...helpPost,...sourcePost]);
+  },[helpPost,sourcePost]);
     // Report reasons
     const reportReasons = [
         'Spam',
@@ -390,7 +411,7 @@ const Home = () => {
         post.marker.openPopup();
     };
 
-    const handleSubmitSource = (formData) => {
+    const handleSubmitSource = async (formData) => {
         const newCoordinates = formData.coordinates || [10.3157, 123.8854];
         const newLocation = formData.manualLocation || 'Location not specified';
         const currentTime = new Date().toISOString();
@@ -411,14 +432,13 @@ const Home = () => {
             timestamp: currentTime,
             lastUpdated: currentTime
         };
-
-        setPosts(prev => [...prev, newPost]);
+        await addSource(newPost);
         showToast('Resource shared successfully! Community members can now find your help.', 'success');
         setIsPinPanelOpen(false);
         handlePreviewLocation(null);
     };
 
-    const handleSubmitHelp = (formData) => {
+    const handleSubmitHelp = async (formData) => {
         const newCoordinates = formData.coordinates || [10.3157, 123.8854];
         const newLocation = formData.manualLocation || 'Location not specified';
         const currentTime = new Date().toISOString();
@@ -439,8 +459,7 @@ const Home = () => {
             timestamp: currentTime,
             lastUpdated: currentTime
         };
-
-        setPosts(prev => [...prev, newPost]);
+        await addNeedHelp(newPost);
         showToast('Help request submitted! Community responders have been notified.', 'success');
         setIsHelpPanelOpen(false);
         handlePreviewLocation(null);
@@ -613,7 +632,7 @@ const Home = () => {
 
                             return (
                                 <div
-                                    key={post.id}
+                                    key={`${post.id}-${post.timestamp}`}
                                     onClick={() => handlePostClick(post)}
                                     className={`border rounded-lg p-3 transition-all hover:shadow-md cursor-pointer active:scale-95 ${
                                         isHelp
