@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     MapPin,
+    Pin,
     HeartHandshake,
     Search,
     Menu,
@@ -561,7 +562,7 @@ const Home = () => {
                             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
                         <div className="flex items-center space-x-2">
-                            <HeartHandshake className="w-6 h-6 text-red-500" />
+                            <Pin className="w-6 h-6 text-red-500" />
                             <div>
                                 <h1 className="text-xl font-bold text-gray-900">Crowd Sourcing</h1>
                                 <div className="flex items-center space-x-2 text-xs text-gray-500">
