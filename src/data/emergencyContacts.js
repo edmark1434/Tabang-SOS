@@ -89,6 +89,6 @@ export const emergencyContacts = {
     ],
     credits: {
         developedBy: "RavenLabs Development",
-        version: "1.2"
+        version: "1.3"
     }
 };
