@@ -515,7 +515,7 @@ const Home = () => {
     };
 
     const filteredPosts = posts.filter(post => {
-        if (filters.city && post.location !== filters.city) return false;
+        if (filters.city && !post.location.includes(filters.city)) return false;
         if (filters.category) {
             const postCategory = post.category;
             if (Array.isArray(postCategory)) {
