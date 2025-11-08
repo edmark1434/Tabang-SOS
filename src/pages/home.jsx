@@ -541,7 +541,7 @@ const Home = () => {
                                 <h1 className="text-xl font-bold text-gray-900">Crowd Sourcing</h1>
                                 <div className="flex items-center space-x-2 text-xs text-gray-500">
                                     <MapPin className="w-3 h-3" />
-                                    <span>Cebu, Philippines • Version 1.1</span>
+                                    <span>Cebu, Philippines • Version 1.2</span>
                                 </div>
                             </div>
                         </div>
