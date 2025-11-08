@@ -294,7 +294,7 @@ const Home = () => {
                             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
                         <div>
-                            <h1 className="text-xl font-bold text-gray-900">Cebu City Crowd Source</h1>
+                            <h1 className="text-xl font-bold text-gray-900">Cebu City Crowd Source V1.1</h1>
                             <p className="text-gray-500 text-xs mt-1">{activeEmergencyCases} active emergency cases</p>
                         </div>
                     </div>
