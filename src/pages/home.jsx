@@ -23,7 +23,8 @@ import {
     Utensils,
     Clock,
     Flag,
-    ArrowUpDown
+    ArrowUpDown,
+    CircleQuestionMarkIcon
 } from 'lucide-react';
 import { addNeedHelp } from '../services/needHelp.js';
 import PinSourcePanel from './modals/PinSourcePanel.jsx';
@@ -31,6 +32,8 @@ import AskHelpPanel from './modals/AskHelpPanel.jsx';
 import { categories, cities } from '../data/dataset.js';
 import { liveHelp } from '../services/needHelp.js';
 import { addSource, liveSource } from '../services/source.js';
+import EmergencyContactsPage from './EmergencyContactsPage.jsx';
+
 const Home = () => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
@@ -59,6 +62,9 @@ const Home = () => {
         posts.filter(p => p.type === 'help' && p.urgent).length
     );
 
+    // State for the new emergency contacts page
+    const [showEmergencyContacts, setShowEmergencyContacts] = useState(false);
+
     const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
     const [filters, setFilters] = useState({
@@ -68,24 +74,24 @@ const Home = () => {
     });
 
     useEffect(() => {
-    // Start listening for live updates
-    const unsubscribe = liveHelp((listHelps) => {
-        setHelpPost(listHelps);
-    });
-    // Cleanup on unmount
-    return () => unsubscribe();
-  }, []);
-  useEffect(() => {
-    // Start listening for live updates
-    const unsubscribe = liveSource((listSource) => {
-        setSourcePost(listSource);
-    });
-    // Cleanup on unmount
-    return () => unsubscribe();
-  }, []);
-  useEffect(()=>{
-    setPosts([...helpPost,...sourcePost]);
-  },[helpPost,sourcePost]);
+        // Start listening for live updates
+        const unsubscribe = liveHelp((listHelps) => {
+            setHelpPost(listHelps);
+        });
+        // Cleanup on unmount
+        return () => unsubscribe();
+    }, []);
+    useEffect(() => {
+        // Start listening for live updates
+        const unsubscribe = liveSource((listSource) => {
+            setSourcePost(listSource);
+        });
+        // Cleanup on unmount
+        return () => unsubscribe();
+    }, []);
+    useEffect(()=>{
+        setPosts([...helpPost,...sourcePost]);
+    },[helpPost,sourcePost]);
     // Report reasons
     const reportReasons = [
         'Spam',
@@ -215,7 +221,7 @@ const Home = () => {
                                     <span>${post.hearts}</span>
                                 </button>
                             </div>
-                            ${post.urgent ? '<p class="text-red-600 font-bold text-xs">🚨 URGENT</p>' : ''}
+                            ${post.urgent ? '<p class="text-red-600 font-bold text-xs">🚨</p>' : ''}
                         </div>
                     </div>
                 </div>
@@ -347,7 +353,7 @@ const Home = () => {
                                     <span>${post.hearts}</span>
                                 </button>
                             </div>
-                            ${post.urgent ? '<p class="text-red-600 font-bold text-xs">🚨 URGENT</p>' : ''}
+                            ${post.urgent ? '<p class="text-red-600 font-bold text-xs">🚨</p>' : ''}
                         </div>
                     </div>
                 </div>
@@ -560,20 +566,31 @@ const Home = () => {
                                 <h1 className="text-xl font-bold text-gray-900">Crowd Sourcing</h1>
                                 <div className="flex items-center space-x-2 text-xs text-gray-500">
                                     <MapPin className="w-3 h-3" />
-                                    <span>Cebu, Philippines • Version 1.2</span>
+                                    <span>Cebu, Philippines • Version 1.3</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                        {/* Filter Button */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className={`p-2 rounded-md transition-colors ${
                                 showFilters ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'
                             }`}
+                            title="Show filters"
                         >
                             <Filter size={18} />
+                        </button>
+
+                        {/* NEW Emergency Contacts Button */}
+                        <button
+                            onClick={() => setShowEmergencyContacts(true)}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                            title="Emergency Hotlines"
+                        >
+                            <CircleQuestionMarkIcon size={18} />
                         </button>
                     </div>
                 </div>
@@ -673,8 +690,7 @@ const Home = () => {
                                         </div>
                                         {post.urgent && (
                                             <span className="flex items-center space-x-1 text-red-600 font-medium">
-                                                <AlertCircle className="w-3 h-3" />
-                                                <span>URGENT</span>
+                                                {/*<AlertCircle className="w-3 h-3" />*/}
                                             </span>
                                         )}
                                     </div>
@@ -904,6 +920,11 @@ const Home = () => {
                 onPreviewLocation={handlePreviewLocation}
                 categories={categories.help}
             />
+
+            {/* NEW: Render Emergency Contacts Page */}
+            {showEmergencyContacts && (
+                <EmergencyContactsPage onClose={() => setShowEmergencyContacts(false)} />
+            )}
 
             <style>{`
                 @keyframes slideDown {
