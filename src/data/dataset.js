@@ -98,4 +98,4 @@ export const categories = {
     help: ['Water', 'Electricity', 'Food', 'Clothes', 'Medicine', 'Shelter', 'Rescue', 'Clearing', 'Volunteers']
 };
 
-export const cities = ['Cebu City', 'Mandaue City', 'Lapu-Lapu City', 'Talisay City', 'Minglanilla', 'Naga City', 'Consolacion', 'Liloan'];
+export const cities = ['Cebu City', 'Mandaue', 'Lapu-Lapu', 'Talisay', 'Minglanilla', 'Naga City', 'Consolacion', 'Liloan'];

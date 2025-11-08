@@ -417,7 +417,7 @@ const Home = () => {
         post.marker.openPopup();
     };
 
-    const handleSubmitSource = async (formData) => {
+    const handleSubmitSource = async(formData) => {
         const newCoordinates = formData.coordinates || [10.3157, 123.8854];
         const newLocation = formData.manualLocation || 'Location not specified';
         const currentTime = new Date().toISOString();
@@ -515,7 +515,7 @@ const Home = () => {
     };
 
     const filteredPosts = posts.filter(post => {
-        if (filters.city && post.location !== filters.city) return false;
+        if (filters.city && !post.location.includes(filters.city)) return false;
         if (filters.category) {
             const postCategory = post.category;
             if (Array.isArray(postCategory)) {
