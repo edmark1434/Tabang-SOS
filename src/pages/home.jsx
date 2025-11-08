@@ -411,7 +411,7 @@ const Home = () => {
         post.marker.openPopup();
     };
 
-    const handleSubmitSource = async (formData) => {
+    const handleSubmitSource = async(formData) => {
         const newCoordinates = formData.coordinates || [10.3157, 123.8854];
         const newLocation = formData.manualLocation || 'Location not specified';
         const currentTime = new Date().toISOString();
