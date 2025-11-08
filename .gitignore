@@ -6,12 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+.env
 node_modules
 dist
 dist-ssr
 *.local
-
+Tabang-Sos\src\tabang-sos-1491e-firebase-adminsdk-fbsvc-ab310a1ac9.json
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
