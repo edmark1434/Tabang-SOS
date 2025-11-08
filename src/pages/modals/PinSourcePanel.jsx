@@ -17,7 +17,7 @@ export default function PinSourcePanel({ isOpen, onClose, onSubmitSource, onPrev
         fullName: '',
         contactNumber: '',
         manualLocation: '',
-        coordinates: null
+        coordinates: null,
     };
 
     const [formData, setFormData] = useState(initialFormState);
@@ -112,7 +112,19 @@ export default function PinSourcePanel({ isOpen, onClose, onSubmitSource, onPrev
             setErrors(prev => ({ ...prev, category: null }));
         }
     };
-
+    const fetchCityFromCoords = async (lat, lon) => {
+        try {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            // city can be in city, town, or village
+            const city = data.address.city || data.address.town || data.address.village || '';
+            return city;
+        } catch (error) {
+            console.error("Error fetching city:", error);
+            return '';
+        }
+    };
     const handleLocationSearchChange = (e) => {
         setLocationSearch(e.target.value);
         setFormData(prev => ({ ...prev, manualLocation: e.target.value, coordinates: null }));
@@ -122,13 +134,15 @@ export default function PinSourcePanel({ isOpen, onClose, onSubmitSource, onPrev
         }
     };
 
-    const handleLocationSelect = (result) => {
+    const handleLocationSelect = async(result) => {
         const coords = [parseFloat(result.lat), parseFloat(result.lon)];
+        const city = await fetchCityFromCoords(coords[0], coords[1]);
         setLocationSearch(result.display_name);
         setFormData(prev => ({
             ...prev,
             manualLocation: result.display_name,
-            coordinates: coords
+            coordinates: coords,
+            city: city
         }));
         setCurrentLocation(null);
         setLocationResults([]);
@@ -140,46 +154,79 @@ export default function PinSourcePanel({ isOpen, onClose, onSubmitSource, onPrev
 
     const handleUseCurrentLocation = () => {
         setIsGettingLocation(true);
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const coords = [position.coords.latitude, position.coords.longitude];
-                    const locationText = `Current Location (${coords[0].toFixed(4)}, ${coords[1].toFixed(4)})`;
 
-                    setFormData(prev => ({
-                        ...prev,
-                        coordinates: coords,
-                        manualLocation: locationText
-                    }));
-                    setLocationSearch(locationText);
-                    setCurrentLocation(coords);
-                    setIsGettingLocation(false);
-
-                    if (errors.location) {
-                        setErrors(prev => ({ ...prev, location: null }));
-                    }
-                    onPreviewLocation(coords);
-                },
-                (error) => {
-                    setIsGettingLocation(false);
-                    console.error('Unable to retrieve your location.', error);
-                    // Fallback to default coordinates if location fails
-                    const coords = [10.3157, 123.8854];
-                    const locationText = 'Current Location (approx.)';
-                    setFormData(prev => ({
-                        ...prev,
-                        coordinates: coords,
-                        manualLocation: locationText
-                    }));
-                    setLocationSearch(locationText);
-                    setCurrentLocation(coords);
-                    onPreviewLocation(coords);
-                }
-            );
-        } else {
-            setIsGettingLocation(false);
+        if (!navigator.geolocation) {
             console.error('Geolocation is not supported by this browser.');
+            setIsGettingLocation(false);
+            return;
         }
+
+        let locationRetrieved = false;
+
+        const timeoutId = setTimeout(() => {
+            if (!locationRetrieved) {
+                console.warn("Location request timed out, using approximate fallback.");
+                const coords = [10.3157, 123.8854]; // Cebu fallback
+                const locationText = 'Approximate Location (Cebu City)';
+                setFormData(prev => ({
+                    ...prev,
+                    coordinates: coords,
+                    manualLocation: locationText,
+                    city: "Cebu City",
+                }));
+                setLocationSearch(locationText);
+                setCurrentLocation(coords);
+                setIsGettingLocation(false);
+                onPreviewLocation(coords);
+            }
+        }, 7000); // 7s timeout fallback
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                locationRetrieved = true;
+                clearTimeout(timeoutId);
+
+                const coords = [position.coords.latitude, position.coords.longitude];
+                const locationText = `Current Location (${coords[0].toFixed(4)}, ${coords[1].toFixed(4)})`;
+
+                // Show coordinates instantly
+                setFormData(prev => ({
+                    ...prev,
+                    coordinates: coords,
+                    manualLocation: locationText,
+                }));
+                setLocationSearch(locationText);
+                setCurrentLocation(coords);
+                onPreviewLocation(coords);
+
+                // Fetch city name asynchronously (won’t block UI)
+                fetchCityFromCoords(coords[0], coords[1]).then(city => {
+                    setFormData(prev => ({ ...prev, city }));
+                });
+
+                setIsGettingLocation(false);
+            },
+            (error) => {
+                locationRetrieved = true;
+                clearTimeout(timeoutId);
+                console.error('Unable to retrieve your location.', error);
+
+                // fallback to Cebu if it fails
+                const coords = [10.3157, 123.8854];
+                const locationText = 'Approximate Location (Cebu City)';
+                setFormData(prev => ({
+                    ...prev,
+                    coordinates: coords,
+                    manualLocation: locationText,
+                    city: "Cebu City",
+                }));
+                setLocationSearch(locationText);
+                setCurrentLocation(coords);
+                setIsGettingLocation(false);
+                onPreviewLocation(coords);
+            },
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 0 }
+        );
     };
 
     const handleSubmit = (e) => {

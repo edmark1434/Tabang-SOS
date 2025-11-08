@@ -437,7 +437,8 @@ const Home = () => {
             hearts: 0,
             userHearted: false,
             timestamp: currentTime,
-            lastUpdated: currentTime
+            lastUpdated: currentTime,
+            city: formData.city
         };
         await addSource(newPost);
         showToast('Resource shared successfully! Community members can now find your help.', 'success');
@@ -453,6 +454,7 @@ const Home = () => {
         const newPost = {
             id: posts.length + 1,
             type: 'help',
+            city: formData.city,
             category: formData.category,
             title: formData.title || `${formData.category[0] || 'General'} Request`,
             description: formData.description,
@@ -516,7 +518,7 @@ const Home = () => {
     };
 
     const filteredPosts = posts.filter(post => {
-        if (filters.city && !post.location.includes(filters.city)) return false;
+        if (filters.city && !post.city.includes(filters.city)) return false;
         if (filters.category) {
             const postCategory = post.category;
             if (Array.isArray(postCategory)) {
